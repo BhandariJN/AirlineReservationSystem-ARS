@@ -1,6 +1,7 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.controller;
 
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.LoginRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ApiResponse;
@@ -23,14 +24,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
         try {
             User user = userService.login(loginRequest);
-            AuthResponse authResponse = AuthResponse.builder()
-                    .userId(user.getUserId())
-                    .message("Success")
-                    .build();
-            return ResponseEntity.ok(new ApiResponse("Login successful", authResponse));
-        } catch (AlreadyExistException e) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponse(e.getMessage(), null));
+
+
+
+            return ResponseEntity.ok(new ApiResponse("Login successful", user.getUserId()));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
     }
 

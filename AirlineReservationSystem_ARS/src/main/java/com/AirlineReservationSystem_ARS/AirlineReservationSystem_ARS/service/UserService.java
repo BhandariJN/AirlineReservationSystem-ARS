@@ -3,6 +3,7 @@ package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.config.MinioConfig;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AuthenticationException;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.LoginRequest;
@@ -115,11 +116,11 @@ public class UserService {
         if (user.isPresent()) {
 
             if (!user.get().getPassengerPassword().equals(loginRequest.getPassword())) {
-                throw new AuthenticationException("Invalid password");
+                throw new ResourceNotFoundException("Invalid password");
             }
 
             return user.get();
         }
-        throw new AlreadyExistException("User with email " + loginRequest.getUsername() + " does not exist");
+        throw new ResourceNotFoundException("User with email " + loginRequest.getUsername() + " does not exist");
     }
 }
