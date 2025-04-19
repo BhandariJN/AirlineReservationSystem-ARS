@@ -39,6 +39,7 @@ public class Flight {
             CascadeType.REMOVE
     },
             fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "flight_id", referencedColumnName = "id", nullable = false)
     private FlightSchedule flightSchedule;
 
     @OneToMany(mappedBy = "flight", cascade = {

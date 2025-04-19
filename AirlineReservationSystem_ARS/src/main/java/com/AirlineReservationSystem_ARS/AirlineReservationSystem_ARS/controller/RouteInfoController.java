@@ -1,6 +1,7 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.controller;
 
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.RouteInfo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.RouteInfoRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ApiResponse;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/route")
@@ -52,7 +52,7 @@ public class RouteInfoController {
         try {
             infoService.deleteRouteInfo(routeId);
             return ResponseEntity.ok(new ApiResponse("Route deleted successfully", null));
-        } catch (AlreadyExistException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), null));
         }
     }

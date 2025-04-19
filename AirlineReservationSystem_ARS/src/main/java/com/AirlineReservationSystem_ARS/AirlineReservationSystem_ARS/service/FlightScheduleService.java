@@ -1,5 +1,6 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.FlightStatus;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Airbus;
@@ -22,6 +23,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,25 +56,31 @@ public class FlightScheduleService {
 
     @Transactional
     public FlightSchedule addFlightSchedule(FlightScheduleRequest request) {
-
         Flight flight = new Flight();
         String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         System.out.println(uuid);
         flight.setFlightNumber(uuid);
+        flight.setFlightStatus(FlightStatus.SCHEDULED);
+        flight.setSeatsBooked(0L);
+        flight.setCurrent_fare(BigDecimal.valueOf(request.getBaseFare()));
         Flight savedFlight = flightRepo.save(flight);
-
 
         RouteInfo routeInfo = routeService.getRouteInfoByRouteCode(request.getRouteCode());
         FlightSchedule flightSchedule = flightRequestToFlightSchedule(request);
-        flightSchedule.setAirbus(airbusRepo.findByAirBusName(request.getAirbusName()).orElseThrow(() -> new ResourceNotFoundException("Airbus Not Found")));
+        flightSchedule.setAirbus(airbusRepo.findByAirBusName(request.getAirbusName())
+                .orElseThrow(() -> new ResourceNotFoundException("Airbus Not Found")));
         flightSchedule.setRouteInfo(routeInfo);
         flightSchedule.setFlight(savedFlight);
 
+        // Set the reverse side of the relationship
+        savedFlight.setFlightSchedule(flightSchedule);
 
-        return flightScheduleRepo.save(flightSchedule);
+        // Now save the schedule first (if needed), then update flight
+        flightScheduleRepo.save(flightSchedule);
+        flightRepo.save(savedFlight); // Optional, but makes relationship consistent
 
+        return flightSchedule;
     }
-
 
 
 

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String pnr;
-    private LocalDateTime reservationDate;
+    private LocalDate reservationDate;
     private Long noOfPassengers;
     private BigDecimal totalFare;
 
