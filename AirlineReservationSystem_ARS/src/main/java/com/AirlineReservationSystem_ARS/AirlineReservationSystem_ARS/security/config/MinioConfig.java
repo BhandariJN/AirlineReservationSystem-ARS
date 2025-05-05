@@ -1,4 +1,4 @@
-package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.config;
+package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.config;
 
 import io.minio.*;
 import io.minio.errors.*;

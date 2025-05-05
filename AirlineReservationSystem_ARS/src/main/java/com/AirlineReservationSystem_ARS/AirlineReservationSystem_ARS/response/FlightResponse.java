@@ -19,6 +19,9 @@ public class FlightResponse {
     private String destination;
     private Long airbusId;
     private String airBusName;
+    private int journeyHr;
+    private int journeyMins;
+
 
 
 }

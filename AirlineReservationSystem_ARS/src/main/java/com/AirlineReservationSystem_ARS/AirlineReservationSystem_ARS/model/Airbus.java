@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.checkerframework.checker.units.qual.C;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -38,9 +39,6 @@ public class Airbus {
     }, orphanRemoval = true)
     @JsonBackReference
     private List<FlightSchedule> flightSchedules;
-
-
-
 
 
 }

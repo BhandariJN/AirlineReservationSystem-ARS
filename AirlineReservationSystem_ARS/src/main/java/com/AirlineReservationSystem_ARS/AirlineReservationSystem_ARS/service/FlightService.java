@@ -35,6 +35,8 @@ public class FlightService {
                 .destination(flight.getFlightSchedule().getRouteInfo().getDestination())
                 .airbusId(flight.getFlightSchedule().getAirbus().getAirbusId())
                 .airBusName(flight.getFlightSchedule().getAirbus().getAirBusName())
+                .journeyHr(flight.getFlightSchedule().getJourneyHrs())
+                .journeyMins(flight.getFlightSchedule().getJourneyMins())
                 .build();
 
     }

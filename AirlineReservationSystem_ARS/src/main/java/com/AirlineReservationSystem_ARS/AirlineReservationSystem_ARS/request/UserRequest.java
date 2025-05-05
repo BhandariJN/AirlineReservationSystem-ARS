@@ -1,5 +1,6 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request;
 
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -7,17 +8,20 @@ import lombok.Data;
 @Data
 public class UserRequest {
     @NotNull
-    private String passengerName;
+    private String name;
     @NotNull
     @Email
-    private String passengerEmail;
+    private String email;
     @NotNull
-    private String passengerPhone;
+    private String phone;
     @NotNull
-    private String passengerAddress;
+    private String address;
     @NotNull
-    private String passengerPassword;
+    private String password;
     @NotNull
-    private String idNo;
+    private String idNumber;
+
+    @NotNull
+    private Role role;
 
 }

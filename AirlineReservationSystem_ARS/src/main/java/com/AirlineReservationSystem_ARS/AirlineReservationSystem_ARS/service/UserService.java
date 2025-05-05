@@ -1,17 +1,16 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.config.MinioConfig;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.config.MinioConfig;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AuthenticationException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.LoginRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.UserRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.UserResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,25 +24,27 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepo userRepo;
     private final MinioConfig minioConfig;
+    private final PasswordEncoder passwordEncoder;
 
     public User addUser(UserRequest userRequest) {
 
-
-        // Check if user already exists
-        userExistsByEmail(userRequest.getPassengerEmail());
-
-
-        // Save user to repository
-
-        return userRepo.save(requestToUser(userRequest));
+        return Optional.of(userRequest).filter(
+                userReq -> !userRepo.existsByEmail(userRequest.getEmail())).map(
+                userReq -> {
+                    User user = new User();
+                    user.setEmail(userReq.getEmail());
+                    user.setPassword(passwordEncoder.encode(userReq.getPassword()));
+                    user.setName(userReq.getName());
+                    user.setAddress(userReq.getAddress());
+                    user.setPhone(userReq.getPhone());
+                    user.setIdNo(userReq.getIdNumber());
+                    user.setRole(userReq.getRole());
+                    return userRepo.save(user);
+                }).orElseThrow(() -> new ResourceNotFoundException(userRequest.getEmail() + "  email already exist!"));
 
 
     }
 
-
-    public Optional<User> userExistsByEmail(String email) {
-        return Optional.ofNullable(userRepo.findByPassengerEmail(email)).orElseThrow(() -> new AuthenticationException("User not found"));
-    }
 
     public ResponseEntity<?> getUserById(Long id) {
 
@@ -58,12 +59,12 @@ public class UserService {
     public User requestToUser(UserRequest userRequest) {
 
         return User.builder()
-                .passengerName(userRequest.getPassengerName())
-                .passengerEmail(userRequest.getPassengerEmail())
-                .passengerPhone(userRequest.getPassengerPhone())
-                .passengerAddress(userRequest.getPassengerAddress())
-                .passengerPassword(userRequest.getPassengerPassword())
-                .idNo(userRequest.getIdNo())
+                .name(userRequest.getName())
+                .email(userRequest.getEmail())
+                .phone(userRequest.getPhone())
+                .address(userRequest.getAddress())
+                .password(userRequest.getPassword())
+                .idNo(userRequest.getIdNumber())
                 .build();
 
     }
@@ -71,10 +72,10 @@ public class UserService {
     public UserResponse userToResponse(User user) {
         return UserResponse.builder()
                 .userId(user.getUserId())
-                .passengerName(user.getPassengerName())
-                .passengerEmail(user.getPassengerEmail())
-                .passengerPhone(user.getPassengerPhone())
-                .passengerAddress(user.getPassengerAddress())
+                .passengerName(user.getName())
+                .passengerEmail(user.getEmail())
+                .passengerPhone(user.getPhone())
+                .passengerAddress(user.getAddress())
                 .idNo(user.getIdNo())
                 .avatarObjectName(user.getAvatarObjectName())
                 .reservations(user.getReservation())
@@ -110,17 +111,5 @@ public class UserService {
         }
     }
 
-    public User login(LoginRequest loginRequest) {
-        // Check if user exists
-        Optional<User> user = userExistsByEmail(loginRequest.getUsername());
-        if (user.isPresent()) {
 
-            if (!user.get().getPassengerPassword().equals(loginRequest.getPassword())) {
-                throw new ResourceNotFoundException("Invalid password");
-            }
-
-            return user.get();
-        }
-        throw new ResourceNotFoundException("User with email " + loginRequest.getUsername() + " does not exist");
-    }
 }
