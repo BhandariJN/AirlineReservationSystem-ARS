@@ -1,9 +1,6 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,5 +27,9 @@ public class Payment {
     private String failure_url;
     private String signed_field_names;
     private String signature;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

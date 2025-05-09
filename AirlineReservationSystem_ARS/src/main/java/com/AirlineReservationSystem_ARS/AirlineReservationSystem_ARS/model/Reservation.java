@@ -2,6 +2,7 @@ package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model;
 
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.ReservationStatus;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.SeatClass;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ReservationResponse;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,5 +41,23 @@ public class Reservation {
 
 
 
+
+    public static ReservationResponse toReservationResponse(Reservation reservation) {
+
+
+
+
+        ReservationResponse reservationResponse = new ReservationResponse();
+
+
+
+        reservationResponse.setFlightNumber(reservation.getFlight().getFlightNumber());
+        reservationResponse.setReservationDate(reservation.getReservationDate());
+        reservationResponse.setNoOfPassengers(reservation.getNoOfPassengers());
+        reservationResponse.setTotalFare(reservation.getTotalFare());
+        reservationResponse.setPnr(reservation.getPnr());
+        reservationResponse.setStatus(reservation.getStatus());
+        return reservationResponse;
+    }
 
 }

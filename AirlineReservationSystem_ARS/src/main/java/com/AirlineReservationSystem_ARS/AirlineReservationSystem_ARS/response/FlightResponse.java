@@ -7,14 +7,15 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Builder
 @Data
 public class FlightResponse {
-    private BigDecimal currentFare; // Changed to camelCase for Java conventions
+    private BigDecimal currentFare;
     private String flightNumber;
     private FlightStatus flightStatus;
-    private LocalDate flightDate;
+    private LocalDateTime flightDate;
     private String origin;
     private String destination;
     private Long airbusId;

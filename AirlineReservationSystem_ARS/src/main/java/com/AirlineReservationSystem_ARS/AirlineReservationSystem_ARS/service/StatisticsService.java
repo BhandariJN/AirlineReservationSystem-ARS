@@ -24,7 +24,7 @@ import java.util.List;
 public class StatisticsService   {
 
 
-    private StatisticsRepository statisticsRepository;
+    private final StatisticsRepository statisticsRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM dd");
 
@@ -142,7 +142,9 @@ public class StatisticsService   {
     // Helper method to generate revenue over time chart
     private ChartData generateRevenueOverTimeChart(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         Page<Object[]> revenueByDate = statisticsRepository.sumRevenueByDate(startDateTime, endDateTime,pageable);
-
+        if(revenueByDate.isEmpty()){
+            return null;
+        }
         List<String> labels = new ArrayList<>();
         List<Number> values = new ArrayList<>();
 
@@ -160,6 +162,10 @@ public class StatisticsService   {
     // Helper method to generate flight status distribution chart
     private ChartData generateFlightStatusChart(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         Page<Object[]> flightsByStatus = statisticsRepository.countFlightsByStatus(startDateTime, endDateTime,pageable);
+
+        if(flightsByStatus.isEmpty()){
+            return null;
+        }
 
         List<String> labels = new ArrayList<>();
         List<Number> values = new ArrayList<>();
@@ -179,6 +185,10 @@ public class StatisticsService   {
     // Helper method to generate top routes chart
     private ChartData generateTopRoutesChart(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         Page<Object[]> revenueByRoute = statisticsRepository.sumRevenueByRoute(startDateTime, endDateTime, pageable);
+
+        if(revenueByRoute.isEmpty()) {
+            return null;
+        }
 
         // Limit to top 5 routes
         int limit = Math.min(revenueByRoute.getSize(), 5);
@@ -200,7 +210,9 @@ public class StatisticsService   {
     // Helper method to generate seat occupancy chart
     private ChartData generateSeatOccupancyChart(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         Page<Object[]> occupancyRates = statisticsRepository.getFlightOccupancyRates(startDateTime, endDateTime, pageable);
-
+        if(occupancyRates.isEmpty()) {
+            return null;
+        }
         // Limit to top 10 flights
         int limit = Math.min(occupancyRates.getSize(), 10);
         List<String> labels = new ArrayList<>();

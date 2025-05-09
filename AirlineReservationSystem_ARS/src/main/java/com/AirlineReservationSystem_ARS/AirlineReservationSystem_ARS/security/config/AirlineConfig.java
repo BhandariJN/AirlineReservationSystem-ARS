@@ -32,7 +32,8 @@ public class AirlineConfig {
             "/reservation/**",
             "/flight/**",
             "/flightschedule/**",
-            "/route/**"
+            "/route/**",
+            "/user/get/users"
     );
     private final AirlineUserDetailsService userDetailsService;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
@@ -64,7 +65,10 @@ public class AirlineConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .cors()
+                .and()
+                .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers(secured_urls.toArray(String[]::new))

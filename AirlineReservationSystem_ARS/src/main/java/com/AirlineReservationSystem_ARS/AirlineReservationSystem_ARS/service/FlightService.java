@@ -28,7 +28,7 @@ public class FlightService {
     public FlightResponse toFlightResponse(Flight flight) {
         return FlightResponse.builder()
                 .flightNumber(flight.getFlightNumber())
-                .flightDate(flight.getFlightSchedule().getDepartureTime().toLocalDate())
+                .flightDate(flight.getFlightSchedule().getDepartureTime())
                 .currentFare(flight.getCurrent_fare())
                 .flightStatus(flight.getFlightStatus())
                 .origin(flight.getFlightSchedule().getRouteInfo().getOrigin())

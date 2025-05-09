@@ -1,9 +1,6 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +13,7 @@ import lombok.Setter;
 @Setter
 public class Cancellation {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String cancel_reason;
     private String cancel_date;
@@ -24,6 +21,10 @@ public class Cancellation {
     private String cancel_status;
     private Long refund_amount;
     private Long reservation_id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 
 }

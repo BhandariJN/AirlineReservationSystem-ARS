@@ -35,7 +35,7 @@ public class AirlineUserDetails implements UserDetails {
                 user.getUserId(),
                 user.getEmail(),
                 user.getPassword(),
-                ro
+                user.getRoles()
         );
 
     }

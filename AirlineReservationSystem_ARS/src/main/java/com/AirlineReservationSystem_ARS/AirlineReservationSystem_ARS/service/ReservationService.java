@@ -4,14 +4,24 @@ import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.Reser
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Flight;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Reservation;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.FlightRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.ReservationRepo;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.ReservationRequest;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ReservationResponse;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.user.AirlineUserDetails;
+import io.micrometer.common.util.internal.logging.AbstractInternalLogger;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -20,12 +30,21 @@ public class ReservationService {
     private final FlightService flightService;
     private final FlightRepo flightRepo;
     private final ReservationRepo reservationRepo;
+    private final UserRepo userRepo;
 
-    public Reservation reserveFlight(ReservationRequest reservationRequest, Long flightId) {
-        Flight flight = flightRepo.findById(flightId).orElseThrow(
+    public ReservationResponse reserveFlight(ReservationRequest reservationRequest) {
+        System.out.println(reservationRequest);
+        Flight flight = flightRepo.findByFlightNumber(reservationRequest.getFlightNumber()).orElseThrow(
                 () -> new ResourceNotFoundException("Flight not found")
         );
+
         Reservation reservation = new Reservation();
+        // get user form security context holder
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepo.findById(userDetails.getId()).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        reservation.setUser(user);
         reservation.setFlight(flight);
         reservation.setReservationDate(LocalDate.now());
         reservation.setStatus(ReservationStatus.PENDING);
@@ -33,7 +52,7 @@ public class ReservationService {
         reservation.setTotalFare(reservationRequest.getTotalFare());
         reservation.setPnr(generatePNR());
 
-        return reservationRepo.save(reservation);
+        return Reservation.toReservationResponse(reservationRepo.save(reservation));
     }
 
     public String generatePNR() {
@@ -42,4 +61,18 @@ public class ReservationService {
     }
 
 
+
+
+
+    public List<ReservationResponse> getAllReservationofUser() {
+        AirlineUserDetails airlineUserDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+
+        List<Reservation> reservations = Optional.ofNullable(reservationRepo.findAllByUser_UserId(airlineUserDetails.getId())).orElseThrow(
+                () -> new ResourceNotFoundException("Reservation not found")
+        );
+
+        return reservations.stream().map(Reservation::toReservationResponse).collect(Collectors.toList());
+
+    }
 }

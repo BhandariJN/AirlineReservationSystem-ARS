@@ -10,11 +10,11 @@ import java.util.List;
 @Data
 public class UserResponse {
     private Long userId;
-    private String passengerName;
-    private String passengerEmail;
-    private String passengerPhone;
-    private String passengerAddress;
+    private String name;
+    private String email;
+    private String phone;
+    private String address;
     private String idNo;
     private String avatarObjectName;
-    List<Reservation> reservations;
+    List<ReservationResponse> reservations;
 }

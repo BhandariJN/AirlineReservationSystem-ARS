@@ -57,31 +57,31 @@ public interface StatisticsRepository extends JpaRepository<Flight, Long> {
                                            @Param("endDateTime") LocalDateTime endDateTime,
                                            Pageable pageable);
 
-    // Get top performing flights by revenue with pagination
     @Query(value = """
-        SELECT new map(
-            f.flightNumber as flightNumber, 
-            CONCAT(r.origin, ' - ', r.destination) as route, 
-            SUM(fs.baseFare * f.seatsBooked) as revenue, 
-            (f.seatsBooked * 100.0 / a.capacity) as occupancyRate, 
-            AVG(fs.baseFare) as averageFare
-        ) 
-        FROM Flight f 
-        JOIN f.flightSchedule fs 
-        JOIN fs.routeInfo r 
-        JOIN fs.airbus a 
-        WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime 
-        GROUP BY f.flightNumber, r.origin, r.destination, a.capacity
-        """,
+    SELECT new map(
+        f.flightNumber as flightNumber, 
+        CONCAT(r.origin, ' - ', r.destination) as route, 
+        SUM(fs.baseFare * f.seatsBooked) as revenue, 
+        (SUM(f.seatsBooked) * 100.0 / a.capacity) as occupancyRate, 
+        AVG(fs.baseFare) as averageFare
+    ) 
+    FROM Flight f 
+    JOIN f.flightSchedule fs 
+    JOIN fs.routeInfo r 
+    JOIN fs.airbus a 
+    WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime 
+    GROUP BY f.flightNumber, r.origin, r.destination, a.capacity
+    """,
             countQuery = """
-        SELECT COUNT(DISTINCT f.flightNumber) 
-        FROM Flight f 
-        JOIN f.flightSchedule fs 
-        WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime
-        """)
+    SELECT COUNT(DISTINCT f.flightNumber) 
+    FROM Flight f 
+    JOIN f.flightSchedule fs 
+    WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime
+    """)
     Page<Object[]> getTopFlightsByRevenue(@Param("startDateTime") LocalDateTime startDateTime,
                                           @Param("endDateTime") LocalDateTime endDateTime,
                                           Pageable pageable);
+
 
     // Total revenue for a given period (doesn't need pagination)
     @Query("SELECT COALESCE(SUM(fs.baseFare * f.seatsBooked), 0) FROM Flight f JOIN f.flightSchedule fs WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime")
@@ -98,8 +98,10 @@ public interface StatisticsRepository extends JpaRepository<Flight, Long> {
     Double calculateAverageBookingRate(@Param("startDateTime") LocalDateTime startDateTime,
                                        @Param("endDateTime") LocalDateTime endDateTime);
 
-    // Calculate average fare (doesn't need pagination)
-    @Query("SELECT AVG(fs.baseFare) FROM Flight f JOIN f.flightSchedule fs WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime")
-    BigDecimal calculateAverageFare(@Param("startDateTime") LocalDateTime startDateTime,
-                                    @Param("endDateTime") LocalDateTime endDateTime);
+
+
+// Calculate average fare (doesn't need pagination)
+@Query("SELECT AVG(fs.baseFare) FROM Flight f JOIN f.flightSchedule fs WHERE fs.departureTime BETWEEN :startDateTime AND :endDateTime")
+BigDecimal calculateAverageFare(@Param("startDateTime") LocalDateTime startDateTime,
+                                @Param("endDateTime") LocalDateTime endDateTime);
 }

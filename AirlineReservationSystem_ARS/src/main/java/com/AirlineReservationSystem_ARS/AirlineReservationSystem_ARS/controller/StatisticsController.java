@@ -16,13 +16,13 @@ import java.time.LocalDate;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/statistics")
+@RequestMapping("/statistics")
 public class StatisticsController {
 
 
-    private StatisticsService statisticsService;
+    private final StatisticsService statisticsService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse> getFlightStatistics(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
