@@ -72,13 +72,13 @@ public class MinioConfig {
             bucketExists();
             return minioClient().getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
-                            .bucket("{bucketName}")
+                            .bucket(bucketName)
                             .object(objectName)
                             .method(Method.GET)
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error generating presigned URL", e);
+            throw new RuntimeException("Error generating presigned URL"+ e.getMessage());
         }
     }
 

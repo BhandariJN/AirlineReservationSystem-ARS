@@ -51,4 +51,20 @@ public class Flight {
     }, orphanRemoval = true)
     private List<Reservation> reservations;
 
+    @OneToMany(mappedBy = "flight", cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE,
+            CascadeType.REFRESH,
+            CascadeType.DETACH,
+            CascadeType.REMOVE
+
+    },
+            fetch = FetchType.EAGER, orphanRemoval = true)
+
+    private List<DailyAvgFlightFareHistory> dailyAvgFlightFareHistory;
+
+
+    @ManyToOne
+    @JoinColumn(name = "managedBy_id", nullable = true)
+    private User managedBy;
 }

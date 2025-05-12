@@ -33,7 +33,8 @@ public class AirlineConfig {
             "/flight/**",
             "/flightschedule/**",
             "/route/**",
-            "/user/get/users"
+            "/user/get/users",
+            "/user/avatar/upload"
     );
     private final AirlineUserDetailsService userDetailsService;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;

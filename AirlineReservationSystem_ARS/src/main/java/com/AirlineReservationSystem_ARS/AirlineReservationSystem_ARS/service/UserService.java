@@ -1,17 +1,19 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Reservation;
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.config.MinioConfig;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Reservation;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.UserRequest;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.UserUpdateRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.UserResponse;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.config.MinioConfig;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.user.AirlineUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,6 @@ public class UserService {
     private final UserRepo userRepo;
     private final MinioConfig minioConfig;
     private final PasswordEncoder passwordEncoder;
-    private final ReservationService reservationService;
 
     public UserResponse addUser(UserRequest userRequest) {
 
@@ -99,14 +100,18 @@ public class UserService {
 
 
     @Transactional
-    public ResponseEntity<?> uploadAvatar(Long id, MultipartFile file) {
+    public ResponseEntity<?> uploadAvatar(MultipartFile file) {
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(
+                () -> new ResourceNotFoundException("User with email " + userDetails.getEmail() + " does not exist")
+        );
+
+
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty or not provided");
         }
 
         try {
-            User user = userRepo.findById(id)
-                    .orElseThrow(() -> new AlreadyExistException("User with id " + id + " does not exist"));
 
             String uuid = UUID.randomUUID().toString();
 
@@ -119,15 +124,62 @@ public class UserService {
         }
     }
 
-    public List<UserResponse> getUserOfAirline(){
+    public List<UserResponse> getUserOfAirline() {
 //        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         List<User> users = userRepo.findAll();
-        if(users.isEmpty()){
-            throw  new ResourceNotFoundException("Users does not exist");
+        if (users.isEmpty()) {
+            throw new ResourceNotFoundException("Users does not exist");
         }
         return users.stream().map(this::userToResponse).collect(Collectors.toList());
     }
 
+
+    public UserResponse getSingleLoggedInUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null || !authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            Long id;
+            if(principal instanceof AirlineUserDetails){
+                id = ((AirlineUserDetails) principal).getId();
+            } else if (principal instanceof String) {
+                String username = (String) principal;
+                System.out.println(username);
+                return   userToResponse(userRepo.findByEmail(username).orElseThrow(
+                        ()-> new ResourceNotFoundException("User with email " + username + " does not exist")
+                ));
+
+            }
+            else {
+                throw new ResourceNotFoundException("User with email " + authentication.getPrincipal() + " does not exist");
+            }
+        }
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userToResponse(userRepo.findById(userDetails.getId()).orElseThrow(
+                () -> new ResourceNotFoundException("User with id " + userDetails.getId() + " does not exist")
+        ));
+    }
+
+    public  String getImgUrl(String objectName){
+        try{
+      return   minioConfig.getPresignedUrl(objectName);
+        }
+        catch (Exception e){
+            return  e.getMessage();
+        }
+    }
+
+    public UserResponse updateUser(UserUpdateRequest userUpdateRequest) {
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = userDetails.getEmail();
+        User existingUser = userRepo.findByEmail(email).orElseThrow(
+                ()-> new ResourceNotFoundException("User with email " + email + " does not exist")
+        );
+        existingUser.setName(userUpdateRequest.getName());
+        existingUser.setAddress(userUpdateRequest.getAddress());
+        existingUser.setPhone(userUpdateRequest.getPhone());
+        existingUser.setIdNo(userUpdateRequest.getIdNo());
+        return  userToResponse(userRepo.save(existingUser));
+    }
 
 }

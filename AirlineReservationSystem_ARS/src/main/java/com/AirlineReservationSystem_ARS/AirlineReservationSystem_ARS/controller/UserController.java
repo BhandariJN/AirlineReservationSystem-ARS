@@ -3,6 +3,7 @@ package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.controller
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.UserRequest;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.UserUpdateRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ApiResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.UserResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service.UserService;
@@ -39,25 +40,47 @@ public class UserController {
         return userService.getAllUser();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
-    }
 
-    @PostMapping("/avatar/{id}")
-    public ResponseEntity<?> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        return userService.uploadAvatar(id, file);
+    @PostMapping("/avatar/upload")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        return userService.uploadAvatar(file);
     }
 
     @GetMapping("/get/users")
-    public ResponseEntity<ApiResponse> getUserOfAirline(){
+    public ResponseEntity<ApiResponse> getUserOfAirline() {
         try {
             return ResponseEntity.ok(new ApiResponse("success", userService.getUserOfAirline()));
-        }
-        catch (ResourceNotFoundException e){
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
         }
     }
 
 
+    @GetMapping("/loggedUser")
+    public ResponseEntity<ApiResponse> getLoggedUser() {
+        try {
+            return ResponseEntity.ok(new ApiResponse("Profile Found", userService.getSingleLoggedInUser()));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/getImgUrl/{objectName}")
+    public ResponseEntity<ApiResponse> getImgUrl(@PathVariable String objectName) {
+        try {
+         return    ResponseEntity.ok(new ApiResponse("success", userService.getImgUrl(objectName)));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest){
+        try {
+            return ResponseEntity.ok(new ApiResponse("success", userService.updateUser(userUpdateRequest)));
+        }
+        catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
 }

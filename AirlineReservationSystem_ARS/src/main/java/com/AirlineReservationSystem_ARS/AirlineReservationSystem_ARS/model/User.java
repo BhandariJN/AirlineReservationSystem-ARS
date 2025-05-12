@@ -45,13 +45,15 @@ public class User {
     private List<Reservation> reservation;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles",joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
     @OneToMany(mappedBy = "user")
     private List<Cancellation> cancellations;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Reservation> reservations;
+    @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Flight> flight;
+
+
 }

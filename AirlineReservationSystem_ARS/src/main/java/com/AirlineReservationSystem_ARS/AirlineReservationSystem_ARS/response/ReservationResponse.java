@@ -1,12 +1,6 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response;
 
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.ReservationStatus;
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Flight;
-import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.Data;
 
 import java.math.BigDecimal;

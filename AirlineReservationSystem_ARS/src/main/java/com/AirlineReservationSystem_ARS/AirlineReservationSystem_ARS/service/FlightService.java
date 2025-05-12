@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -16,12 +18,18 @@ public class FlightService {
     private final DynamicPricingService pricingService; // You'll need to create this
 
     public List<Flight> getAllFlights() {
-        return flightRepo.findAll().stream()
+        return flightRepo.findAllByFlightSchedule_DepartureTimeAfter(LocalDateTime.now()).stream().
+                filter(
+                        flight -> !flight.getFlightSchedule().getDepartureTime().isBefore(LocalDateTime.now().plusMinutes(30))
+                )
                 .peek(flight -> {
                     // Calculate dynamic price
                     BigDecimal currentPrice = pricingService.calculateFlightPrice(flight);
                     flight.setCurrent_fare(currentPrice);
                 })
+                .sorted(
+                        Comparator.comparing(flight -> flight.getFlightSchedule().getDepartureTime())
+                )
                 .toList();
     }
 

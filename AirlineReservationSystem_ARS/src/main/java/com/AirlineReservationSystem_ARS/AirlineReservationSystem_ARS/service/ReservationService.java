@@ -1,6 +1,7 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.ReservationStatus;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Flight;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Reservation;
@@ -11,13 +12,12 @@ import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.ReservationRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ReservationResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.user.AirlineUserDetails;
-import io.micrometer.common.util.internal.logging.AbstractInternalLogger;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,18 +61,51 @@ public class ReservationService {
     }
 
 
-
-
-
     public List<ReservationResponse> getAllReservationofUser() {
         AirlineUserDetails airlineUserDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 
-        List<Reservation> reservations = Optional.ofNullable(reservationRepo.findAllByUser_UserId(airlineUserDetails.getId())).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation not found")
-        );
+        List<Reservation> reservations = Optional.ofNullable(reservationRepo.findAllByUser_UserId(airlineUserDetails.getId()))
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Reservation not found")
+                );
 
-        return reservations.stream().map(Reservation::toReservationResponse).collect(Collectors.toList());
+
+        return reservations.stream().map(Reservation::toReservationResponse).sorted(Comparator.comparing(
+                ReservationResponse::getReservationDate).reversed()
+        ).toList();
 
     }
+
+    public String makePayment(String pnr) {
+        Reservation reservation = Optional.of(reservationRepo.findByPnr(pnr)).orElseThrow(
+                () -> new ResourceNotFoundException("Reservation not found")
+        );
+        switch (reservation.getStatus()) {
+            case PENDING: {
+                reservation.setStatus(ReservationStatus.CONFIRMED);
+                reservationRepo.save(reservation);
+                return "Payment of " + reservation.getPnr() + " has been paid successfully";
+
+            }
+            case CONFIRMED: {
+                throw new AlreadyExistException("Reservation is already confirmed");
+            }
+            case CANCELLED: {
+                throw new AlreadyExistException("Reservation is already cancelled");
+            }
+            default:
+                return null;
+        }
+
+
+    }
+    public List<ReservationResponse> getAllAirlineReservation () {
+        AirlineUserDetails airlineUserDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = airlineUserDetails.getEmail();
+
+        return null;
+
+    }
+
 }

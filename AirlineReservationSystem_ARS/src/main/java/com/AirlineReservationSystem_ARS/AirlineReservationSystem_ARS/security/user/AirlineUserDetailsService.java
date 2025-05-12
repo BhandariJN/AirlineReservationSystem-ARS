@@ -17,10 +17,7 @@ public class AirlineUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = Optional.of(
-                userRepo.findByEmail(email)).orElseThrow(
-                () -> new UsernameNotFoundException("User Not Found")
-        );
-        return AirlineUserDetails.buildUserDetails(user);
+        return userRepo.findByEmail(email).map(AirlineUserDetails::buildUserDetails)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
     }
 }
