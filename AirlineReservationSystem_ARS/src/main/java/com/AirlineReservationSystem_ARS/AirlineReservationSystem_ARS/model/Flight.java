@@ -61,7 +61,7 @@ public class Flight {
     },
             fetch = FetchType.EAGER, orphanRemoval = true)
 
-    private List<DailyAvgFlightFareHistory> dailyAvgFlightFareHistory;
+    private List<FlightFareHistory> dailyAvgFlightFareHistory;
 
 
     @ManyToOne

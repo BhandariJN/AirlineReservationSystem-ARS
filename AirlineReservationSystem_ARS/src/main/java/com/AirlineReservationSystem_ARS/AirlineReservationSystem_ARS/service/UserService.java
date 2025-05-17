@@ -34,19 +34,17 @@ public class UserService {
 
     public UserResponse addUser(UserRequest userRequest) {
 
-        return Optional.of(userRequest).filter(
-                userReq -> !userRepo.existsByEmail(userRequest.getEmail())).map(
-                userReq -> {
-                    User user = new User();
-                    user.setEmail(userReq.getEmail());
-                    user.setPassword(passwordEncoder.encode(userReq.getPassword()));
-                    user.setName(userReq.getName());
-                    user.setAddress(userReq.getAddress());
-                    user.setPhone(userReq.getPhone());
-                    user.setIdNo(userReq.getIdNumber());
-                    user.setRoles(Collections.singleton(userReq.getRole()));
-                    return userToResponse(userRepo.save(user));
-                }).orElseThrow(() -> new ResourceNotFoundException(userRequest.getEmail() + "  email already exist!"));
+        return Optional.of(userRequest).filter(userReq -> !userRepo.existsByEmail(userRequest.getEmail())).map(userReq -> {
+            User user = new User();
+            user.setEmail(userReq.getEmail());
+            user.setPassword(passwordEncoder.encode(userReq.getPassword()));
+            user.setName(userReq.getName());
+            user.setAddress(userReq.getAddress());
+            user.setPhone(userReq.getPhone());
+            user.setIdNo(userReq.getIdNumber());
+            user.setRoles(Collections.singleton(userReq.getRole()));
+            return userToResponse(userRepo.save(user));
+        }).orElseThrow(() -> new ResourceNotFoundException(userRequest.getEmail() + "  email already exist!"));
 
 
     }
@@ -55,9 +53,7 @@ public class UserService {
     public ResponseEntity<?> getUserById(Long id) {
 
 
-        User user = userRepo.findById(id)
-                .orElseThrow(() ->
-                        new AlreadyExistException("User with id " + id + " does not exist"));
+        User user = userRepo.findById(id).orElseThrow(() -> new AlreadyExistException("User with id " + id + " does not exist"));
 
         return ResponseEntity.ok(user);
     }
@@ -84,11 +80,6 @@ public class UserService {
                 .address(user.getAddress())
                 .idNo(user.getIdNo())
                 .avatarObjectName(user.getAvatarObjectName())
-                .reservations((user.getReservation().stream().map(
-                        Reservation::toReservationResponse
-                ).toList()
-
-                ))
                 .build();
     }
 
@@ -102,9 +93,7 @@ public class UserService {
     @Transactional
     public ResponseEntity<?> uploadAvatar(MultipartFile file) {
         AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User with email " + userDetails.getEmail() + " does not exist")
-        );
+        User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User with email " + userDetails.getEmail() + " does not exist"));
 
 
         if (file == null || file.isEmpty()) {
@@ -137,49 +126,41 @@ public class UserService {
 
     public UserResponse getSingleLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null || !authentication.isAuthenticated()) {
+        if (authentication != null || !authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
             Long id;
-            if(principal instanceof AirlineUserDetails){
+            if (principal instanceof AirlineUserDetails) {
                 id = ((AirlineUserDetails) principal).getId();
             } else if (principal instanceof String) {
                 String username = (String) principal;
                 System.out.println(username);
-                return   userToResponse(userRepo.findByEmail(username).orElseThrow(
-                        ()-> new ResourceNotFoundException("User with email " + username + " does not exist")
-                ));
+                return userToResponse(userRepo.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User with email " + username + " does not exist")));
 
-            }
-            else {
+            } else {
                 throw new ResourceNotFoundException("User with email " + authentication.getPrincipal() + " does not exist");
             }
         }
         AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userToResponse(userRepo.findById(userDetails.getId()).orElseThrow(
-                () -> new ResourceNotFoundException("User with id " + userDetails.getId() + " does not exist")
-        ));
+        return userToResponse(userRepo.findById(userDetails.getId()).orElseThrow(() -> new ResourceNotFoundException("User with id " + userDetails.getId() + " does not exist")));
     }
 
-    public  String getImgUrl(String objectName){
-        try{
-      return   minioConfig.getPresignedUrl(objectName);
-        }
-        catch (Exception e){
-            return  e.getMessage();
+    public String getImgUrl(String objectName) {
+        try {
+            return minioConfig.getPresignedUrl(objectName);
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
     public UserResponse updateUser(UserUpdateRequest userUpdateRequest) {
         AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = userDetails.getEmail();
-        User existingUser = userRepo.findByEmail(email).orElseThrow(
-                ()-> new ResourceNotFoundException("User with email " + email + " does not exist")
-        );
+        User existingUser = userRepo.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " does not exist"));
         existingUser.setName(userUpdateRequest.getName());
         existingUser.setAddress(userUpdateRequest.getAddress());
         existingUser.setPhone(userUpdateRequest.getPhone());
         existingUser.setIdNo(userUpdateRequest.getIdNo());
-        return  userToResponse(userRepo.save(existingUser));
+        return userToResponse(userRepo.save(existingUser));
     }
 
 }

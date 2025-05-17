@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DailyAvgFlightFareHistory {
+public class FlightFareHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -22,5 +22,4 @@ public class DailyAvgFlightFareHistory {
     @ManyToOne
     @JoinColumn(name = "flight_id")
     Flight flight;
-
 }

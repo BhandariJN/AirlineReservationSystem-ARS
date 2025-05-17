@@ -5,6 +5,7 @@ import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ public class FlightPriceUpdater {
     private final FlightRepo flightRepo;
     private final DynamicPricingService pricingService;
 
+    @Scheduled(cron = "${scheduler.flight-price-update-cron}")
     @Transactional
     public void updatePricesForAllFlights() {
         List<Flight> flights = flightRepo.findAll();
@@ -25,6 +27,7 @@ public class FlightPriceUpdater {
         if (log.isInfoEnabled()) {
             log.info("Updated prices for {} flights", flights.size());
         }
+
     }
 
     @Transactional

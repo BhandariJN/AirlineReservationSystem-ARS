@@ -16,5 +16,4 @@ public class UserResponse {
     private String address;
     private String idNo;
     private String avatarObjectName;
-    List<ReservationResponse> reservations;
 }

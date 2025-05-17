@@ -22,11 +22,6 @@ public class FlightService {
                 filter(
                         flight -> !flight.getFlightSchedule().getDepartureTime().isBefore(LocalDateTime.now().plusMinutes(30))
                 )
-                .peek(flight -> {
-                    // Calculate dynamic price
-                    BigDecimal currentPrice = pricingService.calculateFlightPrice(flight);
-                    flight.setCurrent_fare(currentPrice);
-                })
                 .sorted(
                         Comparator.comparing(flight -> flight.getFlightSchedule().getDepartureTime())
                 )

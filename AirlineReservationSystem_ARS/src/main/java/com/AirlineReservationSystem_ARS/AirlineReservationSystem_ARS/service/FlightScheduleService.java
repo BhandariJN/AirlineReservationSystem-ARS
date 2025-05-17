@@ -43,6 +43,7 @@ public class FlightScheduleService {
     private final FlightScheduleRepo flightScheduleRepo;
     private final AirbusRepo airbusRepo;
     private final UserRepo userRepo;
+    private final FlightPriceUpdater flightPriceUpdater;
 
 
     public List<FlightScheduleResponse.FlightScheduleData> getAllFlightSchedules() {
@@ -62,7 +63,7 @@ public class FlightScheduleService {
         User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(
                 ()-> new ResourceNotFoundException("User not found")
         );
-        if(!request.getDepartureTime().isBefore(LocalDateTime.now().plusHours(1))){
+        if(request.getDepartureTime().isBefore(LocalDateTime.now().plusHours(1))){
             throw new AlreadyExistException("Please Select Departure Time After 1 Days");
         }
         Flight flight = new Flight();
@@ -89,6 +90,7 @@ public class FlightScheduleService {
         flightScheduleRepo.save(flightSchedule);
         flightRepo.save(savedFlight); // Optional, but makes relationship consistent
 
+        flightPriceUpdater.updatePricesForAllFlights();
         return flightSchedule;
     }
 

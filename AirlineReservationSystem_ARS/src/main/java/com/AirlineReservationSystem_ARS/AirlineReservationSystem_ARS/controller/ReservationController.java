@@ -24,7 +24,7 @@ public class ReservationController {
 
         try {
             return ResponseEntity.ok(new ApiResponse("success", reservationService.reserveFlight(reservationRequest)));
-        } catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException |AlreadyExistException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
 
         }

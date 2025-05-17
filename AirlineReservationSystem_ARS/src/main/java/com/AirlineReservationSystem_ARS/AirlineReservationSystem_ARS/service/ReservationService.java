@@ -33,10 +33,10 @@ public class ReservationService {
     private final UserRepo userRepo;
 
     public ReservationResponse reserveFlight(ReservationRequest reservationRequest) {
-        System.out.println(reservationRequest);
-        Flight flight = flightRepo.findByFlightNumber(reservationRequest.getFlightNumber()).orElseThrow(
-                () -> new ResourceNotFoundException("Flight not found")
-        );
+
+
+        Flight flight = flightExists(reservationRequest);
+        seatAvalibilityCheck(reservationRequest);
 
         Reservation reservation = new Reservation();
         // get user form security context holder
@@ -54,6 +54,7 @@ public class ReservationService {
 
         return Reservation.toReservationResponse(reservationRepo.save(reservation));
     }
+
 
     public String generatePNR() {
         UUID uuid = UUID.randomUUID();
@@ -100,12 +101,35 @@ public class ReservationService {
 
 
     }
-    public List<ReservationResponse> getAllAirlineReservation () {
+
+    public List<ReservationResponse> getAllAirlineReservation() {
         AirlineUserDetails airlineUserDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userEmail = airlineUserDetails.getEmail();
+
 
         return null;
 
     }
+
+
+    public Flight flightExists(ReservationRequest reservationRequest) {
+        return flightRepo.findByFlightNumber(reservationRequest.getFlightNumber()).orElseThrow(
+                () -> new ResourceNotFoundException("Flight not found")
+        );
+    }
+
+    public void seatAvalibilityCheck(ReservationRequest reservationRequest) {
+        Flight flight = flightExists(reservationRequest);
+        Long capacity = flight.getFlightSchedule().getAirbus().getCapacity();
+        Long reservedSeats = flight.getReservations().stream().mapToLong(
+                Reservation::getNoOfPassengers
+        ).sum();
+        Long requestedSeats = reservationRequest.getNoOfPassengers();
+        if (reservedSeats + requestedSeats > capacity) {
+            throw new AlreadyExistException("Sorry!!  Requested " + reservationRequest.getNoOfPassengers() + " seats are not available right now!");
+        }
+
+    }
+
 
 }

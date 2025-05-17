@@ -1,6 +1,8 @@
 package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.enums.ReservationStatus;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Flight;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Reservation;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +31,7 @@ public class DynamicPricingService {
 
         BigDecimal priceMultiplier = calculatePriceMultiplier(flight);
 
+        System.out.println("priceMultiplier: " + priceMultiplier);
 
         BigDecimal calculatedPrice = basePrice.multiply(priceMultiplier)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -44,6 +47,7 @@ public class DynamicPricingService {
 
         long daysToFlight = getDaysToFlight(flight);
         BigDecimal occupancyRate = getOccupancyRate(flight);
+        System.out.println("occupancyRate" + occupancyRate);
         boolean isHoliday = flight.getFlightSchedule().isHolidayFlag();
         boolean isPeakSeason = flight.getFlightSchedule().isSeasonalFlag();
         boolean isSpecialEvent = flight.getFlightSchedule().isSpecialFlag();
@@ -64,14 +68,22 @@ public class DynamicPricingService {
                 .add(eventFactor);
     }
 
-    private long getDaysToFlight(Flight flight) {
+    public long getDaysToFlight(Flight flight) {
         LocalDate departureDate = flight.getFlightSchedule().getDepartureTime().toLocalDate();
         return ChronoUnit.DAYS.between(LocalDate.now(), departureDate);
     }
 
-    private BigDecimal getOccupancyRate(Flight flight) {
-        Long seatsBooked = flight.getSeatsBooked();
+    public BigDecimal getOccupancyRate(Flight flight) {
+        long seatsBooked = flight.getReservations().stream()
+                .filter(
+                        reservation -> reservation.getStatus().equals(ReservationStatus.CONFIRMED)
+                )
+                .mapToLong(
+                        Reservation::getNoOfPassengers
+                ).sum();
+        System.out.println(flight.getFlightNumber() + "seatsBooked: " + seatsBooked);
         Long totalSeats = flight.getFlightSchedule().getAirbus().getCapacity();
+        System.out.println(flight.getFlightNumber() + "totalSeats: " + totalSeats);
         return BigDecimal.valueOf(seatsBooked)
                 .divide(BigDecimal.valueOf(totalSeats), 4, RoundingMode.HALF_UP);
     }
