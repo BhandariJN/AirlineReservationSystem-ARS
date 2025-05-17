@@ -61,9 +61,9 @@ public class FlightScheduleService {
     public FlightSchedule addFlightSchedule(FlightScheduleRequest request) {
         AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(
-                ()-> new ResourceNotFoundException("User not found")
+                () -> new ResourceNotFoundException("User not found")
         );
-        if(request.getDepartureTime().isBefore(LocalDateTime.now().plusHours(1))){
+        if (request.getDepartureTime().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new AlreadyExistException("Please Select Departure Time After 1 Days");
         }
         Flight flight = new Flight();
@@ -95,28 +95,23 @@ public class FlightScheduleService {
     }
 
 
-
     @Transactional
     @Modifying
     public void deleteFlightSchedule(Long id) {
-        // 1. Get the entity with relationships
-        flightScheduleRepo.findById(id)
+        // Check if it exists first
+        FlightSchedule schedule = flightScheduleRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Flight Schedule Not Found"));
 
+        // Delete related flight manually
+        flightRepo.delete(schedule.getFlight());
 
+        // Then delete schedule using custom query
         int deletedCount = flightScheduleRepo.deleteFlightScheduleById(id);
-
-
-        if(deletedCount == 0) {
-            throw new ResourceNotFoundException("Failed to delete flight schedule with id: " + id);
-        }
-
-        // 4. Verify deletion
-        flightScheduleRepo.flush();
-        if (flightScheduleRepo.existsById(id)) {
+        if (deletedCount == 0 || flightScheduleRepo.existsById(id)) {
             throw new RuntimeException("Failed to delete flight schedule with id: " + id);
         }
     }
+
 
     public FlightSchedule flightRequestToFlightSchedule(FlightScheduleRequest request) {
         return FlightSchedule.builder()

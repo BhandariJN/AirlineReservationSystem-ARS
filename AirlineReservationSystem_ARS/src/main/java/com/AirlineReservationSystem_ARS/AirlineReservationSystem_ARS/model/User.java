@@ -49,8 +49,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-    @OneToMany(mappedBy = "user")
-    private List<Cancellation> cancellations;
 
     @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Flight> flight;
