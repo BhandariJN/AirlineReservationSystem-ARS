@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class DynamicPricingService {
@@ -74,13 +77,13 @@ public class DynamicPricingService {
     }
 
     public BigDecimal getOccupancyRate(Flight flight) {
-        long seatsBooked = flight.getReservations().stream()
-                .filter(
-                        reservation -> reservation.getStatus().equals(ReservationStatus.CONFIRMED)
-                )
-                .mapToLong(
-                        Reservation::getNoOfPassengers
-                ).sum();
+        long seatsBooked = Optional.ofNullable(flight.getReservations())
+                .stream()
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .filter(reservation -> ReservationStatus.CONFIRMED.equals(reservation.getStatus()))
+                .mapToLong(Reservation::getNoOfPassengers)
+                .sum();
         System.out.println(flight.getFlightNumber() + "seatsBooked: " + seatsBooked);
         Long totalSeats = flight.getFlightSchedule().getAirbus().getCapacity();
         System.out.println(flight.getFlightNumber() + "totalSeats: " + totalSeats);

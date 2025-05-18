@@ -30,9 +30,9 @@ public class FlightSchedule {
 
 
 
-   @OneToOne
-   @JoinColumn(name = "flight_id", nullable = false)
-   @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToOne
+    @JoinColumn(name = "flight_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Flight flight;
 
     @ManyToOne
