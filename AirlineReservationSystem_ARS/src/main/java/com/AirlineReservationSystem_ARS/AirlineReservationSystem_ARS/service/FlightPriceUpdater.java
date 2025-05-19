@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,31 +16,31 @@ import java.util.List;
 @Slf4j
 public class FlightPriceUpdater {
     private final FlightRepo flightRepo;
-    private final DynamicPricingService pricingService;
+    private final DynamicPricingService dynamicPricingService;
+    private final FlightFareHistoryService flightFareHistoryService;
+    private final FlightService flightService;
+
 
     @Scheduled(cron = "${scheduler.flight-price-update-cron}")
     @Transactional
     public void updatePricesForAllFlights() {
-        List<Flight> flights = flightRepo.findAll();
+        List<Flight> flights = flightService.getAllFlights();
         flights.forEach(this::updateFlightPrice);
+
+        for (Flight flight : flights) {
+            flightFareHistoryService.updatePreviousFlightFare(flight);
+            updateFlightPrice(flight);
+        }
+
         if (log.isInfoEnabled()) {
             log.info("Updated prices for {} flights", flights.size());
         }
 
     }
 
-    @Transactional
-    public void updatePricesForFlightsDepartingSoon() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime threshold = now.plusDays(3); // Update flights departing in next 3 days
-        List<Flight> flights = flightRepo.findByFlightSchedule_DepartureTimeBetween(now, threshold);
-
-        flights.forEach(this::updateFlightPrice);
-        log.info("Updated prices for {} imminent flights", flights.size());
-    }
 
     private void updateFlightPrice(Flight flight) {
-        BigDecimal newPrice = pricingService.calculateFlightPrice(flight);
+        BigDecimal newPrice = dynamicPricingService.calculateFlightPrice(flight);
         flight.setCurrent_fare(newPrice);
     }
 }

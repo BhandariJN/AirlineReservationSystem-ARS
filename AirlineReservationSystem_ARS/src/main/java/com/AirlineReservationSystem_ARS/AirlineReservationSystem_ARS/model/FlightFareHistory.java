@@ -17,7 +17,7 @@ public class FlightFareHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    BigDecimal avgFlightFare;
+    BigDecimal flightFare;
     BigDecimal flightBookingRatio;
     @ManyToOne
     @JoinColumn(name = "flight_id")
@@ -25,7 +25,7 @@ public class FlightFareHistory {
 
     public FlightFareHistory(Flight flight, BigDecimal currentFare, BigDecimal occupancyRate) {
         this.flight = flight;
-        this.avgFlightFare = currentFare;
+        this.flightFare = currentFare;
         this.flightBookingRatio = occupancyRate;
     }
 }
