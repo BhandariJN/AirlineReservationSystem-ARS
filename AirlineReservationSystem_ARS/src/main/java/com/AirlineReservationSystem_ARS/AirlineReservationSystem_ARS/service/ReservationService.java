@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +37,6 @@ public class ReservationService {
     private final UserRepo userRepo;
 
     public ReservationResponse reserveFlight(ReservationRequest reservationRequest) {
-
 
         Flight flight = flightExists(reservationRequest);
         seatAvalibilityCheck(reservationRequest);
@@ -196,6 +194,9 @@ public class ReservationService {
             throw new RuntimeException("Failed to generate ticket PDF: " + e.getMessage(), e);
         }
     }
+
+
+
 
     private void addTableRow(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
         PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));

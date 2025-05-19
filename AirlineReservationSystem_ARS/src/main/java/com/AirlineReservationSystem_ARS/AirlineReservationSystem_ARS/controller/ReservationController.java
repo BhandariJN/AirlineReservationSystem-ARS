@@ -32,6 +32,18 @@ public class ReservationController {
         }
     }
 
+    @DeleteMapping("cancel/{pnr}")
+    public ResponseEntity<ApiResponse> cancelReservation(@PathVariable("pnr") String pnr) {
+
+        try {
+            reservationService.cancelReservation(pnr);
+            return ResponseEntity.ok(new ApiResponse("Reservation of " + pnr + " cancelled successfully!", null));
+
+        } catch (Exception e) {
+          return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
     @GetMapping("user/all")
     public ResponseEntity<ApiResponse> getAllReservationsOfUser() {
 
@@ -83,6 +95,5 @@ public class ReservationController {
             );
         }
     }
-
 
 }

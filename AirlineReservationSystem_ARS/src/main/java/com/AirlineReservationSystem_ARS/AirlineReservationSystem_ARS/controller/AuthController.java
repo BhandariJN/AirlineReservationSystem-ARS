@@ -38,7 +38,9 @@ public class AuthController {
             String jwt = jwtUtils.generateTokenForUser(authentication);
             AirlineUserDetails userDetails = (AirlineUserDetails) authentication.getPrincipal();
 
-            JwtResponse jwtResponse = new JwtResponse(userDetails.getId(), jwt);
+            String role = String.valueOf(userDetails.getRoles().stream().findFirst().orElseThrow(null));
+            JwtResponse jwtResponse = new JwtResponse(userDetails.getId(), jwt, role);
+
             return ResponseEntity.ok(new ApiResponse("Login Successful", jwtResponse));
 
         } catch (AuthenticationException e) {
