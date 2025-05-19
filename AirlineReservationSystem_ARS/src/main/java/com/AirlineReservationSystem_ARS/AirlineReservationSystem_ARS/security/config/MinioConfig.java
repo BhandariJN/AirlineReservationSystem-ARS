@@ -47,7 +47,7 @@ public class MinioConfig {
                         .bucket(bucketName).build());
             }
         } catch (Exception e) {
-            throw new RuntimeException("Bucket check/creation failed", e);
+            throw new RuntimeException("Bucket check/creation failed"+e.getMessage());
         }
     }
 
@@ -63,11 +63,11 @@ public class MinioConfig {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error uploading file to Minio", e);
+            throw new RuntimeException("Error uploading file to Minio"+ e.getMessage());
         }
     }
 
-   public String getPresignedUrl(String objectName) {
+    public String getPresignedUrl(String objectName) {
         try {
             bucketExists();
             return minioClient().getPresignedObjectUrl(
@@ -78,7 +78,7 @@ public class MinioConfig {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error generating presigned URL"+ e.getMessage());
+            throw new RuntimeException("Error generating presigned URL" + e.getMessage());
         }
     }
 
@@ -92,7 +92,7 @@ public class MinioConfig {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error deleting file from Minio", e);
+            throw new RuntimeException("Error deleting file from Minio"+ e.getMessage());
         }
     }
 
@@ -109,7 +109,7 @@ public class MinioConfig {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error updating file in Minio", e);
+            throw new RuntimeException("Error updating file in Minio" + e.getMessage());
         }
     }
 

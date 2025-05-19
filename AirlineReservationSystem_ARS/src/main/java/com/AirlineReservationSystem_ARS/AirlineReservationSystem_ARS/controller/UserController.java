@@ -43,7 +43,11 @@ public class UserController {
 
     @PostMapping("/avatar/upload")
     public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
-        return userService.uploadAvatar(file);
+        try {
+            return userService.uploadAvatar(file);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), null));
+        }
     }
 
     @GetMapping("/get/users")
@@ -68,18 +72,17 @@ public class UserController {
     @GetMapping("/getImgUrl/{objectName}")
     public ResponseEntity<ApiResponse> getImgUrl(@PathVariable String objectName) {
         try {
-         return    ResponseEntity.ok(new ApiResponse("success", userService.getImgUrl(objectName)));
+            return ResponseEntity.ok(new ApiResponse("success", userService.getImgUrl(objectName)));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
         }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ApiResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest){
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest) {
         try {
             return ResponseEntity.ok(new ApiResponse("success", userService.updateUser(userUpdateRequest)));
-        }
-        catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
         }
     }
