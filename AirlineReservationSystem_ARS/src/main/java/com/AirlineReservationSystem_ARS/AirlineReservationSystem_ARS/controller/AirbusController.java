@@ -29,7 +29,7 @@ public class AirbusController {
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createAirbus(@Valid @RequestBody AirbusRequest airbusRequest) {
         try {
-            Airbus response = airbusService.addAirbus(airbusRequest);
+            AirbusResponse response = airbusService.addAirbus(airbusRequest);
             return ResponseEntity.ok(new ApiResponse("success", response));
         } catch (AlreadyExistException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)

@@ -3,14 +3,18 @@ package com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.AlreadyExistException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.ResourceNotFoundException;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.RouteInfo;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.FlightScheduleRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.RouteInfoRepo;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.RouteInfoRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.RouteInfoResponse;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.user.AirlineUserDetails;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,30 +27,21 @@ public class RouteInfoService {
 
     private final RouteInfoRepo routeInfoRepo;
     private final FlightScheduleRepo flightScheduleRepo;
+    private final UserRepo userRepo;
 
 
-    public RouteInfo getRouteInfoById(Long routeId) {
-        // Logic to fetch RouteInfo by routeId from the database
-        // This is a placeholder implementation
-        return routeInfoRepo.findById(routeId)
-                .orElseThrow(() -> new AlreadyExistException("Resource Not Found"));
-    }
-
-
-    public RouteInfo addRouteInfo(RouteInfoRequest routeInfo) {
+    public RouteInfoResponse addRouteInfo(RouteInfoRequest routeInfo) {
         System.out.println(routeInfo.toString());
+        User managedBy = getUser();
         // Check if the route code already exists
-        Optional<RouteInfo> existingRouteInfo = routeInfoRepo.findByRouteCode(routeInfo.getRouteCode());
+        Optional<RouteInfo> existingRouteInfo = routeInfoRepo.findByRouteCodeAndManagedByUserId(routeInfo.getRouteCode(), managedBy.getUserId());
         if (existingRouteInfo.isPresent()) {
             throw new AlreadyExistException("Route code already exists");
         }
-        return routeInfoRepo.save(requestToRouteInfo(routeInfo));
-    }
+        RouteInfo route = requestToRouteInfo(routeInfo);
+        route.setManagedBy(managedBy);
 
-
-    public RouteInfo getRouteInfoByCode(String routeCode) {
-
-        return routeInfoRepo.findByRouteCode(routeCode).orElseThrow(() -> new AlreadyExistException("Resource Not Found"));
+        return routeInfoToResponse(routeInfoRepo.save(route));
     }
 
     public RouteInfo requestToRouteInfo(RouteInfoRequest request) {
@@ -69,25 +64,25 @@ public class RouteInfoService {
                 .build();
     }
 
-    public List<RouteInfo> getAllRouteInfo() {
-        List<RouteInfo> routeInfos = routeInfoRepo.findAll();
+    public List<RouteInfoResponse> getAllRouteInfo() {
+        User managedBy = getUser();
+        List<RouteInfo> routeInfos = routeInfoRepo.findAllByManagedBy_UserId(managedBy.getUserId());
         if (routeInfos.isEmpty()) {
-            throw new AlreadyExistException("No Route Info Found");
+            throw new ResourceNotFoundException("No Route Info Found");
         }
-        return routeInfos;
+        return routeInfos.stream().map(
+                this::routeInfoToResponse
+        ).toList();
     }
 
 
     public List<String> getAllRouteCodes() {
-        List<RouteInfo> routeInfos = routeInfoRepo.findAll();
-        if (routeInfos.isEmpty()) {
-            throw new AlreadyExistException("No Route Info Found");
-        }
-        return routeInfos.stream().map(RouteInfo::getRouteCode).toList();
+
+        return routeInfoRepo.findRouteCodesByUserId(getUser().getUserId());
     }
 
     public RouteInfo getRouteInfoByRouteCode(String routeCode) {
-        return routeInfoRepo.findByRouteCode(routeCode).orElseThrow(() -> new AlreadyExistException("Resource Not Found"));
+        return routeInfoRepo.findByRouteCodeAndManagedByUserId(routeCode,getUser().getUserId()).orElseThrow(() -> new AlreadyExistException("Resource Not Found"));
     }
 
     @Transactional
@@ -112,5 +107,13 @@ public class RouteInfoService {
         routeInfo.setRouteCode(routeInfoRequest.getRouteCode());
 
         return routeInfoRepo.save(routeInfo);
+    }
+
+    private User getUser() {
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User managedBy = userRepo.findById(userDetails.getId()).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        return managedBy;
     }
 }

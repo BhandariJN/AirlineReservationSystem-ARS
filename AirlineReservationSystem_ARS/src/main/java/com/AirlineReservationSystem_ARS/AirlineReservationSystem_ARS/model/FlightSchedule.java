@@ -47,4 +47,8 @@ public class FlightSchedule {
     @JsonIgnore
     private Airbus airbus;
 
+    @ManyToOne
+    @JoinColumn(name = "managedBy_id", nullable = true)
+    private User managedBy;
+
 }

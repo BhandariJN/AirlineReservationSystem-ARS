@@ -22,14 +22,14 @@ import java.util.List;
 public class RouteInfoController {
 
     private final RouteInfoService infoService;
-    private final RouteInfoService routeInfoService;
+
 
 
     @RequestMapping("/add")
     public ResponseEntity<ApiResponse> addRoute(@RequestBody @Valid RouteInfoRequest routeInfoRequest) {
         try {
-            RouteInfo info = infoService.addRouteInfo(routeInfoRequest);
-            return ResponseEntity.ok(new ApiResponse("Route added successfully", infoService.routeInfoToResponse(info)));
+            RouteInfoResponse info = infoService.addRouteInfo(routeInfoRequest);
+            return ResponseEntity.ok(new ApiResponse("Route added successfully", info));
         } catch (Exception e) {
             return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
         }
@@ -38,13 +38,10 @@ public class RouteInfoController {
     @RequestMapping("/all")
     public ResponseEntity<ApiResponse> getAllRoute() {
         try {
-            List<RouteInfo> routeInfos = infoService.getAllRouteInfo();
-            List<RouteInfoResponse> responses = routeInfos.stream().map(
-                    routeInfoService::routeInfoToResponse
-            ).toList();
 
-            return ResponseEntity.ok(new ApiResponse("success", responses));
-        } catch (AlreadyExistException e) {
+
+            return ResponseEntity.ok(new ApiResponse("success",infoService.getAllRouteInfo()));
+        } catch (AlreadyExistException|ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), null));
         }
     }

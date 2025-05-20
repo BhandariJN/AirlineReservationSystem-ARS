@@ -40,5 +40,11 @@ public class Airbus {
     @JsonBackReference
     private List<FlightSchedule> flightSchedules;
 
+    @ManyToOne
+    @JoinColumn(name = "managedBy_id", nullable = true)
+    private User managedBy;
+
+
+
 
 }

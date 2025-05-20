@@ -53,5 +53,14 @@ public class User {
     @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Flight> flight;
 
+    @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Airbus> airbuses;
+
+    @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FlightSchedule> flightSchedules;
+
+    @OneToMany(mappedBy = "managedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RouteInfo> routeInfos;
+
 
 }

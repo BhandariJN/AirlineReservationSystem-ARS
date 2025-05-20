@@ -34,4 +34,8 @@ public class RouteInfo {
             CascadeType.REMOVE
     }, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FlightSchedule> flightSchedules;
+
+    @ManyToOne
+    @JoinColumn(name = "managedBy_id", nullable = true)
+    private User managedBy;
 }

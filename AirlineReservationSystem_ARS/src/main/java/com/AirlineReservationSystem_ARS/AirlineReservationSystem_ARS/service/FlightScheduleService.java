@@ -47,22 +47,19 @@ public class FlightScheduleService {
 
 
     public List<FlightScheduleResponse.FlightScheduleData> getAllFlightSchedules() {
-
-        List<FlightSchedule> flightSchedules = flightScheduleRepo.findAll();
+        System.out.println(getUser().getUserId());
+        List<FlightSchedule> flightSchedules = flightScheduleRepo.findAllByManagedBy_UserId(getUser().getUserId());
+        System.out.println(flightSchedules);
         return flightSchedules.stream()
                 .map(this::toResponse)
                 .toList();
-
 
     }
 
 
     @Transactional
-    public FlightSchedule addFlightSchedule(FlightScheduleRequest request) {
-        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepo.findByEmail(userDetails.getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User not found")
-        );
+    public FlightScheduleResponse.FlightScheduleData addFlightSchedule(FlightScheduleRequest request) {
+        User user = getUser();
         if (request.getDepartureTime().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new AlreadyExistException("Please Select Departure Time After 1 Days");
         }
@@ -72,26 +69,33 @@ public class FlightScheduleService {
         flight.setFlightNumber(uuid);
         flight.setFlightStatus(FlightStatus.SCHEDULED);
         flight.setSeatsBooked(0L);
-        flight.setCurrent_fare(BigDecimal.valueOf(request.getBaseFare()));
+        flight.setCurrent_fare(BigDecimal.ZERO);
         flight.setManagedBy(user);
         Flight savedFlight = flightRepo.save(flight);
 
         RouteInfo routeInfo = routeService.getRouteInfoByRouteCode(request.getRouteCode());
+        Airbus airbus = airbusService(request.getAirbusName());
         FlightSchedule flightSchedule = flightRequestToFlightSchedule(request);
-        flightSchedule.setAirbus(airbusRepo.findByAirBusName(request.getAirbusName())
-                .orElseThrow(() -> new ResourceNotFoundException("Airbus Not Found")));
         flightSchedule.setRouteInfo(routeInfo);
         flightSchedule.setFlight(savedFlight);
+        flightSchedule.setAirbus(airbus);
+        flightSchedule.setManagedBy(user);
 
         // Set the reverse side of the relationship
         savedFlight.setFlightSchedule(flightSchedule);
 
         // Now save the schedule first (if needed), then update flight
-        flightScheduleRepo.save(flightSchedule);
+FlightSchedule savedFlightSchedule=  flightScheduleRepo.save(flightSchedule);
         flightRepo.save(savedFlight); // Optional, but makes relationship consistent
 
         flightPriceUpdater.updatePricesForAllFlights();
-        return flightSchedule;
+        return toResponse(savedFlightSchedule);
+    }
+
+    private Airbus airbusService(String airbusName) {
+        return airbusRepo.findByAirBusName(airbusName).orElseThrow(
+                () -> new ResourceNotFoundException("Airbus Not Found")
+        );
     }
 
 
@@ -141,6 +145,14 @@ public class FlightScheduleService {
                 .airBusName(flightSchedule.getAirbus().getAirBusName())
                 .build();
 
+    }
+
+    private User getUser() {
+        AirlineUserDetails userDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User managedBy = userRepo.findById(userDetails.getId()).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        return managedBy;
     }
 
 

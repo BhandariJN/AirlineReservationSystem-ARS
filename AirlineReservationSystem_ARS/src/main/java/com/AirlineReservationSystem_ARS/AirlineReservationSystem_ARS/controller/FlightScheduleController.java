@@ -25,7 +25,6 @@ public class FlightScheduleController {
 
 
     private final FlightScheduleService flightScheduleService;
-    private final FlightScheduleRepo flightScheduleRepo;
     private final RouteInfoService routeService;
     private final AirbusService airbusService;
 
@@ -51,7 +50,7 @@ public class FlightScheduleController {
     public ResponseEntity<ApiResponse> getAllFlightSchedules() {
         try{
             List<FlightScheduleResponse.FlightScheduleData> response = flightScheduleService.getAllFlightSchedules();
-            List<String> airbusNames = airbusService.getAllAirbusNames();
+            List<String> airbusNames = airbusService.airbusNames();
             List<String> routeCodes = routeService.getAllRouteCodes();
             FlightScheduleResponse schedule=  FlightScheduleResponse.builder()
                     .flightSchedule(response)
@@ -72,9 +71,9 @@ public class FlightScheduleController {
     ) {
 
         try {
-            FlightSchedule flightSchedule =flightScheduleService.addFlightSchedule(flightScheduleRequest);
 
-            return ResponseEntity.ok(new ApiResponse("Success", flightScheduleService.toResponse(flightSchedule)));
+
+            return ResponseEntity.ok(new ApiResponse("Success", flightScheduleService.addFlightSchedule(flightScheduleRequest)));
         } catch (AlreadyExistException|ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), null));
         }

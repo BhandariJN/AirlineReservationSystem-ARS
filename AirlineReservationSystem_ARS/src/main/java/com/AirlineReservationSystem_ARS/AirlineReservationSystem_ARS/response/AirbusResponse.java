@@ -16,7 +16,5 @@ public class AirbusResponse {
     private String airBusModel;
     private String airBusRegistrationNumber;
     private Long airBusCapacity;
-    private List<FlightScheduleResponse.FlightScheduleData> flightSchedules;
-
-
+    private String managedBy;
 }

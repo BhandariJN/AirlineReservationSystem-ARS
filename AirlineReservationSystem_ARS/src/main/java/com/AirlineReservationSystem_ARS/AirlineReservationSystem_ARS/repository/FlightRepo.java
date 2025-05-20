@@ -16,4 +16,6 @@ public interface FlightRepo extends JpaRepository<Flight, Long> {
     List<Flight> findByFlightSchedule_DepartureTimeBetween(LocalDateTime start, LocalDateTime end);
 
     List<Flight> findAllByFlightSchedule_DepartureTimeAfter(LocalDateTime start);
+
+    List<Flight> findAllByFlightSchedule_DepartureTimeAfterAndManagedByUserId(LocalDateTime localDateTime, Long userId);
 }

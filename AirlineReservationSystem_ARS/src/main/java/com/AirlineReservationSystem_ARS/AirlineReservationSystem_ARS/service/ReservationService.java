@@ -196,8 +196,6 @@ public class ReservationService {
     }
 
 
-
-
     private void addTableRow(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
         PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));
         labelCell.setBorderColor(BaseColor.LIGHT_GRAY);
@@ -260,10 +258,12 @@ public class ReservationService {
 
     public List<ReservationResponse> getAllAirlineReservation() {
         AirlineUserDetails airlineUserDetails = (AirlineUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = airlineUserDetails.getEmail();
+        List<Reservation> reservations = reservationRepo.findAllByFlight_ManagedBy_UserId(airlineUserDetails.getId());
 
 
-        return null;
+        return reservations.stream().map(
+                Reservation::toReservationResponse
+        ).toList();
 
     }
 
