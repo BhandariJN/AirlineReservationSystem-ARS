@@ -5,6 +5,7 @@ import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.exception.R
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Flight;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.FlightRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.FlightRequest;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.FlightSearchRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.ApiResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.FlightResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.service.FlightService;
@@ -35,7 +36,7 @@ public class FlightController {
 
             return ResponseEntity.ok(new ApiResponse("Success", responses));
         } catch (Exception e) {
-           return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
     }
 
@@ -51,5 +52,14 @@ public class FlightController {
         }
     }
 
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse> searchFlights(@RequestBody FlightSearchRequest request) {
+
+        try {
+         return    ResponseEntity.ok(new ApiResponse("Success", flightService.searchFlight(request)));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
 
 }

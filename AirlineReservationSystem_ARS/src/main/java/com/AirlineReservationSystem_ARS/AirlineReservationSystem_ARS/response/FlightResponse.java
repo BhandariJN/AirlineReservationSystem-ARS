@@ -22,7 +22,7 @@ public class FlightResponse {
     private String airBusName;
     private int journeyHr;
     private int journeyMins;
-
+    private String airlineName;
 
 
 }

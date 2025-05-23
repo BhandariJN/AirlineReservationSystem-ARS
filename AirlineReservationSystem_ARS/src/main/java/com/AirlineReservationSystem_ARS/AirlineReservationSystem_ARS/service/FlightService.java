@@ -5,16 +5,18 @@ import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.Fligh
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.model.User;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.FlightRepo;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.repository.UserRepo;
+import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.request.FlightSearchRequest;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.response.FlightResponse;
 import com.AirlineReservationSystem_ARS.AirlineReservationSystem_ARS.security.user.AirlineUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class FlightService {
                     this::toFlightResponse
             ).toList();
         }
-       throw new ResourceNotFoundException("No flight found");
+        throw new ResourceNotFoundException("No flight found");
     }
 
     public FlightResponse toFlightResponse(Flight flight) {
@@ -56,6 +58,7 @@ public class FlightService {
                 .airBusName(flight.getFlightSchedule().getAirbus().getAirBusName())
                 .journeyHr(flight.getFlightSchedule().getJourneyHrs())
                 .journeyMins(flight.getFlightSchedule().getJourneyMins())
+                .airlineName(flight.getManagedBy().getName())
                 .build();
 
     }
@@ -67,6 +70,25 @@ public class FlightService {
         );
         return managedBy;
     }
+
+    public List<FlightResponse> searchFlight(FlightSearchRequest request) {
+        LocalDate dateOnly = LocalDate.parse(request.getDepartureTime().substring(0, 10)); // "2025-05-23T12:00:00"
+
+        List<Flight> flights = flightRepo.findFlightsByOriginDestinationAndDepartureDate(
+                request.getOrigin(),
+                request.getDestination(),
+                dateOnly
+        );
+
+        if (flights.isEmpty()) {
+            throw new ResourceNotFoundException("No flights found.");
+        }
+
+        return flights.stream()
+                .map(this::toFlightResponse)
+                .collect(Collectors.toList());
+    }
+
 
 
 }
